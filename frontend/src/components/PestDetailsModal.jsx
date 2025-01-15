@@ -11,7 +11,7 @@ export default function PestDetailsModal({ pest, onClose }) {
             onClick={onClose}
             className="text-gray-400 hover:text-gray-500"
           >
-            <IoClose className="h-6 w-6"/>
+            <IoClose className="h-6 w-6" />
           </button>
         </div>
 

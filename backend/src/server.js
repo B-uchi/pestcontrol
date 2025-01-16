@@ -53,6 +53,9 @@ mongoose.connect(process.env.MONGODB_URI)
 
   // Assign Routes
 app.use('/api/', require('./routes/router.js'));
+app.get("/ping", async (req, res) => {
+    res.status(200).json({ message: "pong" });
+});
 
 
 // Handle errors

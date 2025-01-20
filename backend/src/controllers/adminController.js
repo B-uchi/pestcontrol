@@ -95,6 +95,10 @@ const getActivityReport = async (req, res) => {
     const start = new Date(startDate);
     const end = new Date(endDate);
 
+    // Set the time to start and end of day
+    start.setHours(0, 0, 0, 0);
+    end.setHours(23, 59, 59, 999);
+
     const [newUsers, newCrops, pestReports, timeline] = await Promise.all([
       User.countDocuments({
         createdAt: { $gte: start, $lte: end }
@@ -115,63 +119,65 @@ const getActivityReport = async (req, res) => {
       timeline
     });
   } catch (error) {
+    console.error('Activity report error:', error);
     res.status(500).json({ message: error.message });
   }
 };
 
 const generateTimeline = async (start, end) => {
   try {
-    const pipeline = [
-      {
-        $facet: {
-          crops: [
-            { 
-              $match: { 
-                createdAt: { $gte: start, $lte: end } 
-              }
-            },
-            {
-              $group: {
-                _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
-                count: { $sum: 1 }
-              }
-            }
-          ],
-          pests: [
-            { 
-              $match: { 
-                createdAt: { $gte: start, $lte: end } 
-              }
-            },
-            {
-              $group: {
-                _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
-                count: { $sum: 1 }
-              }
-            }
-          ]
+    const cropPipeline = [
+      { 
+        $match: { 
+          createdAt: { $gte: start, $lte: end } 
         }
+      },
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $sort: { _id: 1 }
+      }
+    ];
+
+    const pestPipeline = [
+      { 
+        $match: { 
+          createdAt: { $gte: start, $lte: end } 
+        }
+      },
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $sort: { _id: 1 }
       }
     ];
 
     const [cropResults, pestResults] = await Promise.all([
-      Crop.aggregate(pipeline),
-      Pest.aggregate(pipeline)
+      Crop.aggregate(cropPipeline),
+      Pest.aggregate(pestPipeline)
     ]);
 
-    // Combine and format the results
     const timeline = [];
     let currentDate = new Date(start);
 
     while (currentDate <= end) {
       const dateStr = currentDate.toISOString().split('T')[0];
-      const cropCount = cropResults.find(r => r._id === dateStr)?.count || 0;
-      const pestCount = pestResults.find(r => r._id === dateStr)?.count || 0;
+      
+      const cropData = cropResults.find(r => r._id === dateStr);
+      const pestData = pestResults.find(r => r._id === dateStr);
 
       timeline.push({
         date: dateStr,
-        crops: cropCount,
-        pests: pestCount
+        crops: cropData?.count || 0,
+        pests: pestData?.count || 0
       });
 
       currentDate.setDate(currentDate.getDate() + 1);

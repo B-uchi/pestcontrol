@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import CropRegistrationModal from '../components/CropRegistrationModal';
 import PestDetailsModal from '../components/PestDetailsModal';
 import { FaInfoCircle } from 'react-icons/fa';
+import api from '../utils/api';
 
 export default function FarmerDashboard() {
   const [crops, setCrops] = useState([]);
@@ -16,12 +17,7 @@ export default function FarmerDashboard() {
 
   const fetchCrops = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/crops/farmer`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      const data = await response.json();
+      const {data} = await api.get('/crops/farmer');
       setCrops(data);
     } catch (error) {
       console.error('Error fetching crops:', error);

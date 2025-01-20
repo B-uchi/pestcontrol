@@ -1,4 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import api from '../utils/api';
 
 const AuthContext = createContext(null);
 
@@ -6,38 +8,27 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Check for saved auth data on mount
     const savedAuth = localStorage.getItem('auth');
     if (savedAuth) {
-      const { user, token } = JSON.parse(savedAuth);
-      setUser(user);
-      setToken(token);
+      const authData = JSON.parse(savedAuth);
+      setUser(authData.user);
+      setToken(authData.token);
     }
     setLoading(false);
   }, []);
 
   const login = async ({ email, password }) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Invalid credentials');
-      }
-
-      const data = await response.json();
+      const { data } = await api.post('/login', { email, password });
       setUser(data.user);
       setToken(data.token);
-      
-      // Save auth data to localStorage
       localStorage.setItem('auth', JSON.stringify(data));
     } catch (error) {
-      throw new Error(error.message);
+      throw new Error(error.response?.data?.message || 'Login failed');
     }
   };
 
@@ -45,34 +36,32 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     setToken(null);
     localStorage.removeItem('auth');
+    navigate('/login');
   };
 
   const register = async (userData) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(userData),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Registration failed');
-      }
-
-      const data = await response.json();
+      const { data } = await api.post('/register', userData);
       setUser(data.user);
       setToken(data.token);
-      
-      // Save auth data to localStorage
       localStorage.setItem('auth', JSON.stringify(data));
     } catch (error) {
-      throw new Error(error.message);
+      throw new Error(error.response?.data?.message || 'Registration failed');
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, logout, register }}>
+    <AuthContext.Provider 
+      value={{ 
+        user, 
+        token, 
+        loading, 
+        login, 
+        logout, 
+        register,
+        isAuthenticated: !!token 
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

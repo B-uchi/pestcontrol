@@ -5,6 +5,7 @@ import Login from './pages/Login';
 import FarmerDashboard from './pages/FarmerDashboard';
 import PestControlDashboard from './pages/PestControlDashboard';
 import Signup from './pages/Signup';
+import AdminDashboard from './pages/AdminDashboard';
 
 function PrivateRoute({ children, roles }) {
   const { user, loading } = useAuth();
@@ -32,6 +33,9 @@ function DashboardRouter() {
   }
   if (user.role === 'pestcontrol') {
     return <PestControlDashboard />;
+  }
+  if (user.role === 'admin') {
+    return <AdminDashboard />;
   }
   return <Navigate to="/login" />;
 }

@@ -1,4 +1,5 @@
 const router = require("express").Router();
+const { getDashboardStats, getUsersByRole, getActivityReport } = require("../controllers/adminController");
 const authController = require("../controllers/authController");
 const { registerCrop, updateCrop, getFarmerCrops, getAllCrops, deleteCrop } = require("../controllers/cropController");
 const { createPest, updatePest, getAllPests, deletePest } = require("../controllers/pestController");
@@ -68,5 +69,9 @@ router.delete(
   restrictTo("pestcontrol"),
   deletePest
 );
+
+router.get('/admin/stats', protect, restrictTo('admin'), getDashboardStats);
+router.get('/admin/users/:role', protect, restrictTo('admin'), getUsersByRole);
+router.get('/admin/reports/activity', protect, restrictTo('admin'), getActivityReport);
 
 module.exports = router;

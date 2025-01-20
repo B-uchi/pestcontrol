@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
+import api from '../utils/api.js';
 
 export default function CropRegistrationModal({ onClose, onSuccess }) {
   const { token } = useAuth();
@@ -14,19 +15,7 @@ export default function CropRegistrationModal({ onClose, onSuccess }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/crops`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to register crop');
-      }
-
+      const {data} = await api.post('/crops', formData);
       onSuccess();
     } catch (error) {
       setError(error.message);

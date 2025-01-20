@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import PestUpdateModal from "../components/PestUpdateModal";
 import { FaTrash, FaPencilAlt } from "react-icons/fa";
+import api from "../utils/api";
 
 export default function PestControlDashboard() {
   const { token } = useAuth();
@@ -19,12 +20,7 @@ export default function PestControlDashboard() {
 
   const fetchAllCrops = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/crops`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const data = await response.json();
+      const {data} = await api.get('/crops');
       setCrops(data);
     } catch (error) {
       setError("Error fetching crops");
@@ -33,12 +29,7 @@ export default function PestControlDashboard() {
 
   const fetchAllPests = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/pests`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const data = await response.json();
+      const { data } = await api.get('/pests');
       setPests(data);
     } catch (error) {
       setError("Error fetching pests");
@@ -49,17 +40,7 @@ export default function PestControlDashboard() {
     if (!confirm("Are you sure you want to delete this pest?")) return;
 
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/pests/${pestId}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (!response.ok) throw new Error("Failed to delete pest");
+      const {data} = await api.delete(`/pests/${pestId}`);
 
       setPests(pests.filter((pest) => pest._id !== pestId));
     } catch (error) {

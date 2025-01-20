@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { IoClose } from "react-icons/io5";
+import api from '../utils/api';
 
 
 export default function PestUpdateModal({ pest, crops, onClose, onSuccess }) {
@@ -47,26 +48,14 @@ export default function PestUpdateModal({ pest, crops, onClose, onSuccess }) {
     setError('');
 
     try {
-      const url = `${import.meta.env.VITE_API_URL}/pests${pest ? `/${pest._id}` : ''}`;
-      const method = pest ? 'PUT' : 'POST';
-
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(formData)
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to save pest');
+      if (pest) {
+        await api.put(`/pests/${pest._id}`, formData);
+      } else {
+        await api.post('/pests', formData);
       }
-
       onSuccess();
     } catch (error) {
-      setError(error.message);
+      setError(error.response?.data?.message || 'Failed to save pest');
     } finally {
       setLoading(false);
     }

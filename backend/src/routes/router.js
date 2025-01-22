@@ -3,10 +3,8 @@ const { getDashboardStats, getUsersByRole, getActivityReport } = require("../con
 const authController = require("../controllers/authController");
 const { registerCrop, updateCrop, getFarmerCrops, getAllCrops, deleteCrop } = require("../controllers/cropController");
 const { createPest, updatePest, getAllPests, deletePest } = require("../controllers/pestController");
-const reportController = require("../controllers/reportController");
 const { protect, restrictTo } = require("../middleware/auth");
 
-// You can require and use your routes here ;)
 
 router.post("/register", authController.register);
 router.post("/login", authController.login);
